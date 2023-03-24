@@ -1,6 +1,7 @@
 package com.assignment.demo.security;
 
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
@@ -38,5 +39,27 @@ public class JwtTokenProvider {
         return Keys.hmacShaKeyFor(
                 Decoders.BASE64.decode(jwtSecret)
         );
+    }
+
+    //get username from token
+    public String getUsername(String token) {
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(key())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+
+        String username = claims.getSubject();
+        return username;
+    }
+
+    //validate jwt token
+    public boolean validateToken(String token) {
+
+        Jwts.parserBuilder()
+                .setSigningKey(key())
+                .build()
+                .parse(token);
+        return true;
     }
 }
