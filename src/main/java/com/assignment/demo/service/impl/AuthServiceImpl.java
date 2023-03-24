@@ -2,6 +2,7 @@ package com.assignment.demo.service.impl;
 
 import com.assignment.demo.entity.Role;
 import com.assignment.demo.entity.User;
+import com.assignment.demo.exception.AppException;
 import com.assignment.demo.payload.LoginDto;
 import com.assignment.demo.payload.RegisterDto;
 import com.assignment.demo.repository.RoleRepository;
@@ -9,6 +10,7 @@ import com.assignment.demo.repository.UserRepository;
 import com.assignment.demo.security.JwtTokenProvider;
 import com.assignment.demo.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -62,6 +64,14 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public String register(RegisterDto registerDto) {
+
+        if(userRepository.existsByUsername(registerDto.getUsername())) {
+            throw new AppException(HttpStatus.BAD_REQUEST, "username already exists");
+        }
+
+        if(userRepository.existsByEmail(registerDto.getEmail())) {
+            throw new AppException(HttpStatus.BAD_REQUEST, "email already exists");
+        }
 
         User user = new User();
         user.setName(registerDto.getName());

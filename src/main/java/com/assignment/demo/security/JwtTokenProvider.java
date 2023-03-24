@@ -1,10 +1,15 @@
 package com.assignment.demo.security;
 
+import com.assignment.demo.exception.AppException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
@@ -56,10 +61,20 @@ public class JwtTokenProvider {
     //validate jwt token
     public boolean validateToken(String token) {
 
-        Jwts.parserBuilder()
-                .setSigningKey(key())
-                .build()
-                .parse(token);
-        return true;
+        try{
+            Jwts.parserBuilder()
+                    .setSigningKey(key())
+                    .build()
+                    .parse(token);
+            return true;
+        } catch (MalformedJwtException exception) {
+            throw new AppException(HttpStatus.BAD_REQUEST, "Invalid JWT token");
+        } catch (ExpiredJwtException exception) {
+            throw new AppException(HttpStatus.BAD_REQUEST, "expired JWT token");
+        } catch (UnsupportedJwtException exception) {
+            throw new AppException(HttpStatus.BAD_REQUEST, "unsupported JWT token");
+        } catch (IllegalArgumentException exception) {
+            throw new AppException(HttpStatus.BAD_REQUEST, "JWT claims string is empty in token");
+        }
     }
 }
