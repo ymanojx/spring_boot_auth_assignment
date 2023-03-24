@@ -71,6 +71,6 @@ public class AuthServiceImpl implements AuthService {
 
         userRepository.save(user);
 
-        return "user registered succesfully";
+        return "user registered successfully";
     }
 }
