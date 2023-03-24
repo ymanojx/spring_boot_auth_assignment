@@ -1,5 +1,6 @@
 package com.assignment.demo.config;
 
+import com.assignment.demo.security.JwtAuthenticationEntryPoint;
 import com.assignment.demo.security.JwtAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -19,12 +20,16 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+
 
     @Autowired
     public SecurityConfig(
-            JwtAuthenticationFilter jwtAuthenticationFilter
+            JwtAuthenticationFilter jwtAuthenticationFilter,
+            JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint
     ) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.jwtAuthenticationEntryPoint = jwtAuthenticationEntryPoint;
     }
 
     @Bean
@@ -40,9 +45,11 @@ public class SecurityConfig {
                         authorize.requestMatchers("/api/auth/**").permitAll()
                                 .requestMatchers("/api/public").permitAll()
                                 .anyRequest().authenticated()
+                ).exceptionHandling((exception) ->
+                        exception.authenticationEntryPoint(jwtAuthenticationEntryPoint)
                 ).sessionManagement((session) ->
-                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-        );
+                    session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                );
 
         httpSecurity.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
