@@ -4,6 +4,7 @@ import com.assignment.demo.payload.JwtAuthResponse;
 import com.assignment.demo.payload.LoginDto;
 import com.assignment.demo.payload.RegisterDto;
 import com.assignment.demo.service.AuthService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,7 +25,7 @@ public class AuthController {
     }
 
     @PostMapping(value = {"/login","/signin"})
-    public ResponseEntity<JwtAuthResponse> login(@RequestBody LoginDto loginDto) {
+    public ResponseEntity<JwtAuthResponse> login(@Valid @RequestBody LoginDto loginDto) {
 
         String token = authService.login(loginDto);
 
@@ -35,7 +36,7 @@ public class AuthController {
     }
 
     @PostMapping(value = {"/register", "/signup"})
-    public ResponseEntity<String> register(@RequestBody RegisterDto registerDto) {
+    public ResponseEntity<String> register(@Valid @RequestBody RegisterDto registerDto) {
 
         String response = authService.register(registerDto);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
