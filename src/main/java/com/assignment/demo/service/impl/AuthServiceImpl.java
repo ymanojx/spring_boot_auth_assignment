@@ -9,6 +9,8 @@ import com.assignment.demo.repository.RoleRepository;
 import com.assignment.demo.repository.UserRepository;
 import com.assignment.demo.security.JwtTokenProvider;
 import com.assignment.demo.service.AuthService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -23,6 +25,8 @@ import java.util.Set;
 
 @Service
 public class AuthServiceImpl implements AuthService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(AuthServiceImpl.class);
 
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
@@ -49,13 +53,19 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public String login(LoginDto loginDto) {
 
+        String usernameOrEmail = loginDto.getUsernameOrEmail();
+
+        LOGGER.info(usernameOrEmail + " trying to login");
+
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        loginDto.getUsernameOrEmail(),
+                        usernameOrEmail,
                         loginDto.getPassword()
                 ));
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        LOGGER.info(usernameOrEmail + " logged in successfully");
 
         String token = jwtTokenProvider.generateToken(authentication);
 
@@ -65,18 +75,25 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public String register(RegisterDto registerDto) {
 
-        if(userRepository.existsByUsername(registerDto.getUsername())) {
+        final String username = registerDto.getUsername();
+
+        LOGGER.info(username + " trying to register");
+
+        if(userRepository.existsByUsername(username)) {
+            LOGGER.error("username: " + username + " already exists");
             throw new AppException(HttpStatus.BAD_REQUEST, "username already exists");
         }
 
-        if(userRepository.existsByEmail(registerDto.getEmail())) {
+        final String email = registerDto.getEmail();
+        if(userRepository.existsByEmail(email)) {
+            LOGGER.error("email: " + email + " already exists");
             throw new AppException(HttpStatus.BAD_REQUEST, "email already exists");
         }
 
         User user = new User();
         user.setName(registerDto.getName());
-        user.setEmail(registerDto.getEmail());
-        user.setUsername(registerDto.getUsername());
+        user.setEmail(email);
+        user.setUsername(username);
         user.setPassword(passwordEncoder.encode(registerDto.getPassword()));
 
         Set<Role> roles = new HashSet<>();
@@ -85,6 +102,8 @@ public class AuthServiceImpl implements AuthService {
         user.setRoles(roles);
 
         userRepository.save(user);
+
+        LOGGER.info(username + " registered successfully");
 
         return "user registered successfully";
     }

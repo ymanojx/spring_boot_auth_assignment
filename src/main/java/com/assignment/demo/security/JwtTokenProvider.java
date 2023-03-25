@@ -8,6 +8,8 @@ import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
@@ -18,6 +20,9 @@ import java.util.Date;
 
 @Component
 public class JwtTokenProvider {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(JwtTokenProvider.class);
+
     @Value("${app-jwt-secret}")
     private String jwtSecret;
 
@@ -37,6 +42,9 @@ public class JwtTokenProvider {
                 .setExpiration(expireDate)
                 .signWith(key())
                 .compact();
+
+        LOGGER.info("token generated at: " + currentDate + " for user: " + username);
+
         return token;
     }
 
@@ -68,12 +76,16 @@ public class JwtTokenProvider {
                     .parse(token);
             return true;
         } catch (MalformedJwtException exception) {
+            LOGGER.error("JWT token: " + token + " is invalid");
             throw new AppException(HttpStatus.BAD_REQUEST, "Invalid JWT token");
         } catch (ExpiredJwtException exception) {
+            LOGGER.error("JWT token: " + token + " is expired");
             throw new AppException(HttpStatus.BAD_REQUEST, "expired JWT token");
         } catch (UnsupportedJwtException exception) {
+            LOGGER.error("JWT token: " + token + " is not supported");
             throw new AppException(HttpStatus.BAD_REQUEST, "unsupported JWT token");
         } catch (IllegalArgumentException exception) {
+            LOGGER.error("JWT claims is empty in token: " + token);
             throw new AppException(HttpStatus.BAD_REQUEST, "JWT claims string is empty in token");
         }
     }

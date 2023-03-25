@@ -1,6 +1,8 @@
 package com.assignment.demo.exception;
 
 import com.assignment.demo.payload.ErrorDetails;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -16,6 +18,8 @@ import java.util.Map;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     //handle custom exceptions
     @ExceptionHandler(AppException.class)
@@ -34,6 +38,9 @@ public class GlobalExceptionHandler {
 
         ErrorDetails errorDetails = new ErrorDetails(new Date(), exception.getMessage(),
                 webRequest.getDescription(false));
+
+        LOGGER.error("Global Exception: " + errorDetails);
+
         return new ResponseEntity<>(errorDetails, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
@@ -46,6 +53,9 @@ public class GlobalExceptionHandler {
             String message = error.getDefaultMessage();
             errors.put(fieldName, message);
         });
+
+        LOGGER.error("Validation Exception: " + errors);
+
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }
 
@@ -55,6 +65,9 @@ public class GlobalExceptionHandler {
 
         ErrorDetails errorDetails = new ErrorDetails(new Date(), exception.getMessage(),
                 webRequest.getDescription(false));
+
+        LOGGER.error("Access Denied Exception: " + errorDetails);
+
         return new ResponseEntity<>(errorDetails, HttpStatus.UNAUTHORIZED);
     }
 }
